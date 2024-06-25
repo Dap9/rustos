@@ -23,13 +23,22 @@ fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
 
+mod vga_buffer;
+
 // `extern "C"` -> use C calling convention for this function. Ensure name isn't mangled -> get a
 // function with the name _start. This is the default entry point name for most systems (which the
 // linker will look for). marked as diverging because it should never return. It should perform a
 // 'shutdown' or some action when exiting the OS, e.g. by turning off the machine.
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    simple_print_hello_world();
+    use core::fmt::Write;
+    // simple_print_hello_world();
+    // vga_buffer::hello_world();
+    vga_buffer::WRITER.lock().write_string("Hello World!\n").unwrap();
+        write!(vga_buffer::WRITER.lock(), "line no. {}", 0).unwrap();
+    for i in 1..25 {
+        write!(vga_buffer::WRITER.lock(), "line no. {}", i).unwrap();
+    }
     loop {}
 }
 
