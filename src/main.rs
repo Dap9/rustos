@@ -1,5 +1,4 @@
 #![no_std]
-
 // Main function is usually the entry point of the program. However, this apparently requires std.
 // Thus we use no_main to declare that there is no main and that we define our own custom
 // entrypoint
@@ -31,14 +30,7 @@ mod vga_buffer;
 // 'shutdown' or some action when exiting the OS, e.g. by turning off the machine.
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    use core::fmt::Write;
-    // simple_print_hello_world();
-    // vga_buffer::hello_world();
-    vga_buffer::WRITER.lock().write_string("Hello World!\n").unwrap();
-        write!(vga_buffer::WRITER.lock(), "line no. {}", 0).unwrap();
-    for i in 1..25 {
-        write!(vga_buffer::WRITER.lock(), "line no. {}", i).unwrap();
-    }
+    println!("Hello World!");
     loop {}
 }
 

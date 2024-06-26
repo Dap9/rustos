@@ -1,19 +1,40 @@
 use core::fmt;
-use volatile::Volatile;
 use lazy_static::lazy_static;
 use spin::Mutex;
+use volatile::Volatile;
 
 lazy_static! {
     pub static ref WRITER: Mutex<VGAWriter> = Mutex::new(VGAWriter {
-            col: 0,
-            row: 0,
-            fgbg: ColorCode::new(Color::LightRed, Color::Black),
-            buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
+        col: 0,
+        row: 0,
+        fgbg: ColorCode::new(Color::LightRed, Color::Black),
+        buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
     });
 }
 
 const BUFFER_HEIGHT: usize = 25;
 const BUFFER_WIDTH: usize = 80;
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => {
+        ($crate::vga_buffer::_print(format_args!($($arg)*)));
+    };
+}
+
+#[macro_export]
+macro_rules! println {
+    () => {
+        ($crate::print!("\n"));
+    };
+    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+}
+
+#[doc(hidden)]
+pub fn _print(args: fmt::Arguments) {
+    use core::fmt::Write;
+    WRITER.lock().write_fmt(args).unwrap();
+}
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -68,21 +89,20 @@ pub struct VGAWriter {
 }
 
 impl VGAWriter {
-    pub fn write_string(&mut self, s: &str) -> Result<(), ()> {
+    pub fn write_string(&mut self, s: &str) {
         for byte in s.bytes() {
             match byte {
-                0x20..=0x7e | b'\n' => self.write_byte(byte)?,
-                _ => self.write_byte(0xfe)?,
+                0x20..=0x7e | b'\n' => self.write_byte(byte),
+                _ => self.write_byte(0xfe),
             }
         }
-        Ok(())
     }
-    pub fn write_byte(&mut self, byte: u8) -> Result<(), ()> {
+    pub fn write_byte(&mut self, byte: u8) {
         match byte {
-            b'\n' => self.new_line()?,
+            b'\n' => self.new_line(),
             byte => {
                 if self.col >= BUFFER_WIDTH {
-                    self.new_line()?;
+                    self.new_line();
                 }
                 let row = self.row;
                 let col = self.col;
@@ -95,11 +115,10 @@ impl VGAWriter {
                 self.col += 1;
             }
         }
-        Ok(())
     }
 
     // Goes to a new line. If buffer is full, moves all values up & sets self.row = BUFFER_HEIGHT - 1
-    fn new_line(&mut self) -> Result<(), ()> {
+    fn new_line(&mut self) {
         if self.row >= BUFFER_HEIGHT - 1 {
             // Move all rows.
             for row in 0..BUFFER_HEIGHT - 1 {
@@ -112,7 +131,6 @@ impl VGAWriter {
             self.row += 1;
         }
         self.col = 0;
-        Ok(())
     }
 
     pub fn clear_row(&mut self, row: usize) {
@@ -143,12 +161,11 @@ pub fn hello_world() {
 
     screen
         .write_string("Hello World!\nHello Again!\n")
-        .expect_err("Error when writing 'Hello World!'");
 }
 
 impl fmt::Write for VGAWriter {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        self.write_string(s).expect_err("Error");
+        self.write_string(s);
         Ok(())
     }
 }
