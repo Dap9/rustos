@@ -3,6 +3,9 @@ use lazy_static::lazy_static;
 use spin::Mutex;
 use volatile::Volatile;
 
+// Statics are evaluated at compile time -> similar to const.
+// Thus, using Mutex::new or a similar non-const function will not be evaluated.
+// Lazy static instead evaluates the object the first time it is accessed.
 lazy_static! {
     pub static ref WRITER: Mutex<VGAWriter> = Mutex::new(VGAWriter {
         col: 0,
