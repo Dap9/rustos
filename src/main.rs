@@ -6,6 +6,12 @@
 // and placing args in the right registers) then invokes the 'main' function which is the called by
 // the 'start' language item after it does some rust specific setup.
 #![no_main]
+#![feature(custom_test_frameworks)]
+#![test_runner(crate::test::test_runner)]
+#![reexport_test_harness_main = "test_main"]
+
+mod test;
+mod vga_buffer;
 
 // No std -> no default panic handler. This means when a panic occurs it doesn't know what to do.
 // Thus, we make one below
@@ -23,7 +29,6 @@ fn panic(info: &PanicInfo) -> ! {
     loop {}
 }
 
-mod vga_buffer;
 
 // `extern "C"` -> use C calling convention for this function. Ensure name isn't mangled -> get a
 // function with the name _start. This is the default entry point name for most systems (which the
@@ -32,6 +37,11 @@ mod vga_buffer;
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     println!("Hello World!");
+
+    // Only compiled on cargo test. Doesn't exist on regular runs.
+    #[cfg(test)]
+    test_main();
+
     loop {}
 }
 
