@@ -1,4 +1,5 @@
-use crate::{print, println};
+use core::panic::PanicInfo;
+use crate::{println, serial_println, serial_print};
 
 #[cfg(test)]
 pub fn test_runner(tests: &[&dyn Fn()]) {
@@ -11,11 +12,16 @@ pub fn test_runner(tests: &[&dyn Fn()]) {
 
 #[test_case]
 fn trivial_assertion() {
-    print!("trivial_assertion... ");
+    serial_print!("trivial_assertion... ");
     assert_eq!(1, 1);
-    println!(" [ok]");
+    serial_println!(" [ok]");
+}
 
-    exit_qemu(QemuExitCode::Success);
+#[test_case]
+fn trivial_assertion_failure() {
+    serial_print!("trivial_assertion_failure... ");
+    assert_eq!(0, 1);
+    serial_println!(" [fail]");
 }
 
 // Function to exit qemu
@@ -34,4 +40,14 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
         let mut port:Port<u32> = Port::new(0xf4);
         port.write(exit_code as u32)
     }
+}
+
+#[cfg(test)]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    serial_println!("[fail]\n");
+    serial_println!("{}", info);
+    exit_qemu(QemuExitCode::Failure);
+
+    loop {}
 }

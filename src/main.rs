@@ -15,6 +15,7 @@
 mod test;
 
 mod vga_buffer;
+mod serial;
 
 // No std -> no default panic handler. This means when a panic occurs it doesn't know what to do.
 // Thus, we make one below
@@ -24,8 +25,10 @@ mod vga_buffer;
 // thread to continue execution after catching the panic. However, for the simple OS
 // that we are making, we do not want to do this since it requires some OS-specific libraries (e.g.
 // libunwind)
+#[cfg(not(test))]
 use core::panic::PanicInfo;
 
+#[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
@@ -48,6 +51,7 @@ pub extern "C" fn _start() -> ! {
     loop {}
 }
 
+#[allow(dead_code)]
 fn simple_print_hello_world() {
     let hello: &[u8] = b"Hello World!";
 
