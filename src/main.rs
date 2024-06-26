@@ -10,7 +10,10 @@
 #![test_runner(crate::test::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
+
+#[cfg(test)]
 mod test;
+
 mod vga_buffer;
 
 // No std -> no default panic handler. This means when a panic occurs it doesn't know what to do.
