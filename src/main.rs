@@ -6,6 +6,12 @@
 // and placing args in the right registers) then invokes the 'main' function which is the called by
 // the 'start' language item after it does some rust specific setup.
 #![no_main]
+#![feature(custom_test_frameworks)]
+#![test_runner(rustos::test_runner)]
+#![reexport_test_harness_main = "test_main"]
+
+mod vga_buffer;
+mod serial;
 
 // No std -> no default panic handler. This means when a panic occurs it doesn't know what to do.
 // Thus, we make one below
@@ -15,15 +21,23 @@
 // thread to continue execution after catching the panic. However, for the simple OS
 // that we are making, we do not want to do this since it requires some OS-specific libraries (e.g.
 // libunwind)
+
 use core::panic::PanicInfo;
 
+#[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
     loop {}
 }
 
-mod vga_buffer;
+// Need this for test builds. It looks for the panic handler in the binary?
+#[cfg(test)]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    rustos::test_panic_handler(info);
+}
+
 
 // `extern "C"` -> use C calling convention for this function. Ensure name isn't mangled -> get a
 // function with the name _start. This is the default entry point name for most systems (which the
@@ -32,9 +46,15 @@ mod vga_buffer;
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     println!("Hello World!");
+
+    // Only compiled on cargo test. Doesn't exist on regular runs.
+    #[cfg(test)]
+    test_main();
+
     loop {}
 }
 
+#[allow(dead_code)]
 fn simple_print_hello_world() {
     let hello: &[u8] = b"Hello World!";
 
