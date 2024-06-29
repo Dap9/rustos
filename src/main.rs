@@ -7,12 +7,8 @@
 // the 'start' language item after it does some rust specific setup.
 #![no_main]
 #![feature(custom_test_frameworks)]
-#![test_runner(crate::test::test_runner)]
+#![test_runner(rustos::test_runner)]
 #![reexport_test_harness_main = "test_main"]
-
-
-#[cfg(test)]
-mod test;
 
 mod vga_buffer;
 mod serial;
@@ -25,7 +21,7 @@ mod serial;
 // thread to continue execution after catching the panic. However, for the simple OS
 // that we are making, we do not want to do this since it requires some OS-specific libraries (e.g.
 // libunwind)
-#[cfg(not(test))]
+
 use core::panic::PanicInfo;
 
 #[cfg(not(test))]
@@ -33,6 +29,13 @@ use core::panic::PanicInfo;
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
     loop {}
+}
+
+// Need this for test builds. It looks for the panic handler in the binary?
+#[cfg(test)]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    rustos::test_panic_handler(info);
 }
 
 
