@@ -32,7 +32,7 @@ fn panic(info: &PanicInfo) -> ! {
 pub fn test_runner(tests: &[&dyn Testable]) {
     serial_println!("Running {} tests!", tests.len());
     for test in tests {
-        test.run();
+        test.run(false);
     }
     exit_qemu(QemuExitCode::Success);
 }
@@ -43,17 +43,29 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
     loop {}
 }
 
+pub fn should_panic_handler(_info: &PanicInfo) -> ! {
+    serial_println!("[ok]");
+    exit_qemu(QemuExitCode::Success);
+
+    loop {}
+}
+
 pub trait Testable {
-    fn run(&self) -> ();
+    fn run(&self, panic: bool) -> ();
 }
 
 impl<T> Testable for T
 where
     T: Fn(),
 {
-    fn run(&self) -> () {
+    fn run(&self, panic: bool) -> () {
         serial_print!("{}... \t", core::any::type_name::<T>());
         self();
+        if panic {
+            serial_println!("[fail]");
+            serial_println!("Error:\n expected test to panic but did not panic");
+            exit_qemu(QemuExitCode::Failure);
+        }
         serial_println!("[ok]");
     }
 }
