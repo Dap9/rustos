@@ -7,6 +7,7 @@
 // the 'start' language item after it does some rust specific setup.
 #![no_main]
 #![feature(custom_test_frameworks)]
+#![feature(abi_x86_interrupt)]
 #![test_runner(rustos::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
@@ -47,6 +48,7 @@ fn panic(info: &PanicInfo) -> ! {
 pub extern "C" fn _start() -> ! {
     println!("Hello World!");
 
+    rustos::init();
     // Only compiled on cargo test. Doesn't exist on regular runs.
     #[cfg(test)]
     test_main();

@@ -5,13 +5,14 @@
 
 // test mode -> no main attribute applied
 #![cfg_attr(test, no_main)]
-
+#![feature(abi_x86_interrupt)]
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
 pub mod serial;
 pub mod vga_buffer;
+pub mod cpu_exeptions;
 
 use core::panic::PanicInfo;
 
@@ -21,6 +22,10 @@ pub extern "C" fn _start() -> ! {
     test_main();
 
     loop {}
+}
+
+pub fn init() {
+    cpu_exeptions::init_idt();
 }
 
 #[cfg(test)]
