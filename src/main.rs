@@ -7,8 +7,7 @@
 // the 'start' language item after it does some rust specific setup.
 #![no_main]
 #![feature(custom_test_frameworks)]
-#![test_runner(rustos::test_runner)]
-#![reexport_test_harness_main = "test_main"]
+#![test_runner(rustos::test_runner)] #![reexport_test_harness_main = "test_main"]
 
 mod vga_buffer;
 mod serial;
@@ -47,6 +46,7 @@ fn panic(info: &PanicInfo) -> ! {
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     println!("Hello World!");
+    cpu_exceptions::init();
 
     // Only compiled on cargo test. Doesn't exist on regular runs.
     #[cfg(test)]
