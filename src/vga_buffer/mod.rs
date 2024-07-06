@@ -22,16 +22,16 @@ const BUFFER_WIDTH: usize = 80;
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => {
-        ($crate::vga_buffer::_print(format_args!($($arg)*)));
+        ($crate::vga_buffer::_print(format_args!($($arg)*)))
     };
 }
 
 #[macro_export]
 macro_rules! println {
     () => {
-        ($crate::print!("\n"));
+        ($crate::print!("\n"))
     };
-    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)))
 }
 
 #[doc(hidden)]
