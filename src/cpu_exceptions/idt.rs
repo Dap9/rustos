@@ -15,6 +15,22 @@ impl InterruptDescriptorTable {
         self.0[entry as usize] = Entry::new(segmentation::CS::get_reg(), handler);
         &mut self.0[entry as usize].opts
     }
+
+    // Ensure that the IDT being loaded has a static lifetime. It should be alive
+    // for as long as the OS is running (or at least until a new IDT is loaded,
+    // which is potentially never(? does a new IDT ever get loaded?))
+    pub fn load(&'static self) {
+        use x86_64::structures::DescriptorTablePointer;
+        use x86_64::VirtAddr;
+        use x86_64::instructions::tables::lidt;
+        let ptr = DescriptorTablePointer {
+            base: VirtAddr::new(self as *const _ as u64),
+            limit: (size_of::<Self>() - 1) as u16,
+        };
+        
+        unsafe { lidt(&ptr) };
+        
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
