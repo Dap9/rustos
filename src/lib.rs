@@ -12,6 +12,7 @@
 
 pub mod serial;
 pub mod vga_buffer;
+pub mod cpu_exceptions;
 
 use core::panic::PanicInfo;
 

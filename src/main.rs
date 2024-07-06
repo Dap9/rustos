@@ -12,6 +12,7 @@
 
 mod vga_buffer;
 mod serial;
+mod cpu_exceptions;
 
 // No std -> no default panic handler. This means when a panic occurs it doesn't know what to do.
 // Thus, we make one below
